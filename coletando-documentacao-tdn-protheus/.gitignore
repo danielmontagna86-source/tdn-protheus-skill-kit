@@ -1,0 +1,5 @@
+.venv/
+tdn-cache/
+__pycache__/
+*.py[cod]
+*.tmp

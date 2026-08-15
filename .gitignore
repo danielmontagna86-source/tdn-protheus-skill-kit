@@ -1,0 +1,24 @@
+# Ambientes e artefatos Python
+.venv/
+__pycache__/
+*.py[cod]
+*.pyo
+*.tmp
+
+# Dados e resultados locais: nunca versionar ou publicar
+tdn-cache/
+saida-*/
+tdn_pages.json
+tdn_pages.jsonl
+tdn_errors.jsonl
+*.jsonl
+
+# Empacotamento
+build/
+dist/
+*.zip
+
+# Configuração local e credenciais
+.env
+.env.*
+!.env.example
