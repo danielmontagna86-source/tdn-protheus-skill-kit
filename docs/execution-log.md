@@ -18,7 +18,7 @@ Este documento é o registro operacional da execução de [architecture-public-t
 | 1 | Núcleo do pacote e política | Concluída | 27/27 testes aprovados em 2026-08-15; `doctor` offline, contratos, configuração, política e repositório read-only entregues. |
 | 2 | Índice FTS5 e busca | Concluída | 31/31 testes aprovados em 2026-08-15; índice derivado idempotente, busca FTS5 citável e CLI local entregues. |
 | 3 | MCP read-only por stdio | Concluída | 32/32 testes aprovados em 2026-08-15; protocolo MCP real, tools, resources, prompts e limites entregues. |
-| 4 | Distribuição pública (MVP) | Pendente | PyPI só após validação local e TestPyPI. |
+| 4 | Distribuição pública (MVP) | Em andamento | Build wheel/sdist, Twine, SBOM, documentação e CI concluídos localmente; TestPyPI/PyPI e matriz hospedada aguardam autoridade externa. |
 | 5 | Atualização controlada | Pendente | Requer núcleo MCP estável. |
 | 6 | Adoção e qualidade | Pendente | Requer MVP instalável. |
 | 7 | Decisão corporativa/remota | Pendente | Exige decisão explícita baseada em piloto. |
@@ -32,6 +32,7 @@ Este documento é o registro operacional da execução de [architecture-public-t
 | 2026-08-15 | 1 | Núcleo MCP implementado com TDD. | Suíte completa: 27 aprovados; nenhuma chamada HTTP ou escrita de snapshot foi adicionada. |
 | 2026-08-15 | 2 | Índice FTS5, busca, montagem de contexto e CLI local implementados com TDD. | Suíte completa: 31 aprovados; instalação limpa validada com extras de snapshot separados do MCP mínimo. |
 | 2026-08-15 | 3 | Servidor MCP read-only `stdio` implementado e exercitado por cliente MCP real. | Suíte completa: 32 aprovados; não existe transporte HTTP nem tool mutável. |
+| 2026-08-15 | 4 | Artefatos Python, documentação de instalação e CI multiplataforma preparados. | Wheel/sdist aprovados por Twine; SBOM gerado; publicação no PyPI não executada sem Trusted Publishing. |
 
 ## Decisões pendentes de autoridade externa
 
