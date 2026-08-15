@@ -32,7 +32,7 @@ class SnapshotSearchTests(unittest.TestCase):
             search = SnapshotSearch(policy)
 
             results = search.search(policy.search_query("FWRest", "1", 8, 12000), module="advpl")
-            hostile = search.search(policy.search_query("FWRest' OR 1=1 --", "1", 8, 12000))
+            hostile = search.search(policy.search_query("' OR 1=1 --", "1", 8, 12000))
 
             self.assertEqual([(result.page_id, result.source_url) for result in results], [("10", "https://tdn.totvs.com/10")])
             self.assertEqual(hostile, ())

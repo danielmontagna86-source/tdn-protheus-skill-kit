@@ -23,7 +23,7 @@ def _fts_expression(query: str) -> str | None:
     tokens = re.findall(r"[^\W_]+|\d+", query, flags=re.UNICODE)
     if not tokens:
         return None
-    return " AND ".join(f'"{token.replace(chr(34), chr(34) * 2)}"' for token in tokens)
+    return " OR ".join(f'"{token.replace(chr(34), chr(34) * 2)}"' for token in tokens)
 
 
 def _metadata_has(value: str, expected: str | None) -> bool:

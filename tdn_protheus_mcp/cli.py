@@ -62,6 +62,9 @@ def _parser() -> argparse.ArgumentParser:
     search.add_argument("--table")
     search.add_argument("--routine")
     search.add_argument("--parameter")
+    serve = subcommands.add_parser("serve", help="inicia o servidor MCP local por stdio")
+    serve.add_argument("--config", required=True, help="caminho para o arquivo JSON de configuração")
+    serve.add_argument("--transport", choices=("stdio",), default="stdio")
     return parser
 
 
@@ -97,6 +100,15 @@ def _emit(payload: dict[str, Any], as_json: bool) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
+    if args.command == "serve":
+        from .server import run_server
+
+        try:
+            run_server(args.config, args.transport)
+        except (ConfigError, ValueError) as error:
+            print(str(error), file=sys.stderr)
+            return 2
+        return 0
     try:
         config = load_config(Path(args.config))
         if args.command == "doctor":
