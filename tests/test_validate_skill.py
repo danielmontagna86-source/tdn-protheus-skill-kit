@@ -161,5 +161,5 @@ class PackageReleaseTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
             with zipfile.ZipFile(output) as archive:
                 names = archive.namelist()
-            forbidden = ("/.git/", "/.github/", "/.venv/", "/tdn-cache/", "/saida-local/", ".jsonl")
+            forbidden = ("/.git/", "/.github/", "/.venv/", "/tdn-cache/", "/saida-local/", "/tdn_protheus_mcp.egg-info/", ".jsonl")
             self.assertFalse(any(item in name or name.endswith(item) for name in names for item in forbidden), names)

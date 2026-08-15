@@ -17,6 +17,11 @@ class PackageMetadataTests(unittest.TestCase):
         self.assertEqual(project["requires-python"], ">=3.11")
         self.assertEqual(project["scripts"]["tdn-protheus-mcp"], "tdn_protheus_mcp.cli:main")
         self.assertIn("Apache-2.0", project["license"])
+        self.assertFalse(any(classifier.startswith("License ::") for classifier in project["classifiers"]))
+        self.assertEqual(
+            project["optional-dependencies"]["snapshot"],
+            ["requests>=2.31,<3", "beautifulsoup4>=4.12,<5", "langchain-text-splitters>=0.3,<2"],
+        )
 
 
 if __name__ == "__main__":

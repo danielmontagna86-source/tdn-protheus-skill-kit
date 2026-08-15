@@ -16,7 +16,7 @@ Este documento é o registro operacional da execução de [architecture-public-t
 |---|---|---|---|
 | 0 | Base pública da skill | Concluída | Release `v0.1.0`, CI e 19 testes existentes. |
 | 1 | Núcleo do pacote e política | Concluída | 27/27 testes aprovados em 2026-08-15; `doctor` offline, contratos, configuração, política e repositório read-only entregues. |
-| 2 | Índice FTS5 e busca | Pendente | Inicia após contratos/configuração da Sprint 1. |
+| 2 | Índice FTS5 e busca | Concluída | 31/31 testes aprovados em 2026-08-15; índice derivado idempotente, busca FTS5 citável e CLI local entregues. |
 | 3 | MCP read-only por stdio | Pendente | Inicia após busca citável da Sprint 2. |
 | 4 | Distribuição pública (MVP) | Pendente | PyPI só após validação local e TestPyPI. |
 | 5 | Atualização controlada | Pendente | Requer núcleo MCP estável. |
@@ -30,6 +30,7 @@ Este documento é o registro operacional da execução de [architecture-public-t
 | 2026-08-15 | 1 | Worktree isolado criado; `.worktrees/` incluído no `.gitignore`. | Branch pronta sem alterar a versão de produto em `main`. |
 | 2026-08-15 | 1 | Baseline executado. Um teste assumia `.git` como diretório e falhava em worktree, onde ele é arquivo de ligação. | Teste tornado compatível com ambos os formatos; suíte: 19 aprovados. |
 | 2026-08-15 | 1 | Núcleo MCP implementado com TDD. | Suíte completa: 27 aprovados; nenhuma chamada HTTP ou escrita de snapshot foi adicionada. |
+| 2026-08-15 | 2 | Índice FTS5, busca, montagem de contexto e CLI local implementados com TDD. | Suíte completa: 31 aprovados; instalação limpa validada com extras de snapshot separados do MCP mínimo. |
 
 ## Decisões pendentes de autoridade externa
 
