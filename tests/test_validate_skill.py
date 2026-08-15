@@ -147,6 +147,8 @@ class PackageReleaseTests(unittest.TestCase):
             shutil.copytree(ROOT, package_root)
             for relative in (".git/config", ".github/workflows/ci.yml", ".venv/secret", "tdn-cache/page.json", "saida-local/tdn_pages.json", "sample.jsonl"):
                 path = package_root / relative
+                if path.parent.is_file():
+                    path.parent.unlink()
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_text("not for distribution", encoding="utf-8")
             output = package_root / "dist" / "release.zip"
