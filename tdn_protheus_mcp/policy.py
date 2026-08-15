@@ -24,8 +24,9 @@ class SnapshotPolicy:
 
     def require_path(self, path: str | Path) -> Path:
         candidate = Path(path).expanduser().resolve()
+        cache_root = self._config.cache_root.expanduser().resolve()
         try:
-            candidate.relative_to(self._config.cache_root)
+            candidate.relative_to(cache_root)
         except ValueError as error:
             raise PolicyRefusal("POLICY_PATH_OUTSIDE_CACHE", "o caminho deve estar dentro de cache_root") from error
         return candidate

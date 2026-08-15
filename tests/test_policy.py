@@ -38,6 +38,17 @@ class SnapshotPolicyTests(unittest.TestCase):
             with self.assertRaisesRegex(PolicyRefusal, "POLICY_EMPTY_QUERY"):
                 policy.search_query("   ", "1", 8, 12000)
 
+    def test_policy_accepts_a_cache_path_when_config_uses_an_equivalent_unresolved_path(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            cache_root = Path(temp_dir) / "cache"
+            cache_root.mkdir()
+            equivalent_root = cache_root / ".." / "cache"
+            policy = SnapshotPolicy(McpConfig(cache_root=equivalent_root, allowed_root_ids=frozenset({"1"})))
+
+            accepted = policy.require_path(cache_root / "1" / "index.sqlite3")
+
+            self.assertEqual(accepted, (cache_root / "1" / "index.sqlite3").resolve())
+
 
 if __name__ == "__main__":
     unittest.main()
