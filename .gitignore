@@ -1,7 +1,9 @@
 # Ambientes e artefatos Python
 .venv/
+.worktrees/
 __pycache__/
 *.py[cod]
+*.egg-info/
 *.pyo
 *.tmp
 

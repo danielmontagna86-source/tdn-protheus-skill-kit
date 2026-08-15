@@ -16,7 +16,7 @@ def should_include(path: Path, output: Path) -> bool:
     relative = path.relative_to(ROOT)
     return (
         path.resolve() != output.resolve()
-        and not any(part in EXCLUDED_PARTS or part.startswith(EXCLUDED_PREFIXES) for part in relative.parts)
+        and not any(part in EXCLUDED_PARTS or part.startswith(EXCLUDED_PREFIXES) or part.endswith(".egg-info") for part in relative.parts)
         and path.name not in EXCLUDED_FILENAMES
         and path.suffix not in {".pyc", ".pyo", ".tmp", ".jsonl"}
     )
