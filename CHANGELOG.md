@@ -2,7 +2,14 @@
 
 Todas as mudanças relevantes deste projeto serão registradas neste arquivo.
 
-O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o versionamento segue [Semantic Versioning](https://semver.org/lang/pt-BR/). 
+O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o versionamento segue [Semantic Versioning](https://semver.org/lang/pt-BR/).
+
+## [0.2.1] - 2026-08-16
+
+### Fixed
+
+- O localizador limitado de páginas TDN agora reinicia corretamente a paginação para cada página pai e rejeita links de paginação fora da API pública configurada.
+- O prazo global de coleta e dry-run limita também atrasos e retentativas, evitando exceder o orçamento solicitado.
 
 ## [0.2.0] - 2026-08-15
 

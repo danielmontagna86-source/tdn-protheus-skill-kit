@@ -5,6 +5,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import tomllib
 import unittest
 import zipfile
 from pathlib import Path
@@ -15,6 +16,7 @@ SKILL = ROOT / "coletando-documentacao-tdn-protheus" / "SKILL.md"
 INSTALLER = ROOT / "install.py"
 SKILL_DIR = ROOT / "coletando-documentacao-tdn-protheus"
 VALIDATOR = SKILL_DIR / "scripts" / "validate_skill.py"
+RELEASE_WORKFLOW = ROOT / ".github" / "workflows" / "release.yml"
 
 
 class ValidateSkillTests(unittest.TestCase):
@@ -141,6 +143,22 @@ class ValidateSkillTests(unittest.TestCase):
 
 
 class PackageReleaseTests(unittest.TestCase):
+    def test_release_metadata_has_one_consistent_version(self) -> None:
+        expected = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
+        project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+        init = (ROOT / "tdn_protheus_mcp" / "__init__.py").read_text(encoding="utf-8")
+
+        self.assertEqual(project["project"]["version"], expected)
+        self.assertIn(f'__version__ = "{expected}"', init)
+
+    def test_release_workflow_publishes_only_portable_skill_assets(self) -> None:
+        workflow = RELEASE_WORKFLOW.read_text(encoding="utf-8")
+
+        self.assertNotIn("python -m build", workflow)
+        self.assertNotIn("python -m twine", workflow)
+        self.assertNotIn("cyclonedx", workflow)
+        self.assertIn('gh release create "${GITHUB_REF_NAME}" "dist/tdn-protheus-skill-kit-${GITHUB_REF_NAME}.zip" dist/SHA256SUMS.txt', workflow)
+
     def test_package_excludes_repository_metadata_and_local_data(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             package_root = Path(temp_dir) / "kit"
