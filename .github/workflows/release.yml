@@ -12,22 +12,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1 (Node 24)
       - name: Set up Python
-        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0 (Node 24)
         with:
           python-version: '3.11'
           cache: pip
       - name: Verify release version
         run: test "v$(tr -d '\n' < VERSION)" = "${GITHUB_REF_NAME}"
       - name: Install validation dependencies
-        run: python -m pip install --upgrade pip && python -m pip install -r requirements.txt cyclonedx-bom coverage ruff pip-audit
+        run: python -m pip install --upgrade pip && python -m pip install -r requirements.txt -r requirements-ci.txt cyclonedx-bom coverage ruff pip-audit
       - name: Validate and audit
         run: |
           python coletando-documentacao-tdn-protheus/scripts/validate_skill.py coletando-documentacao-tdn-protheus
           python -m ruff check install.py package.py coletando-documentacao-tdn-protheus/scripts tests
           python -m coverage run --rcfile=.coveragerc -m unittest discover -s tests -p 'test_*.py' -v
-          python -m coverage report --rcfile=.coveragerc --fail-under=70
+          python -m coverage report --rcfile=.coveragerc --fail-under=80
           python -m pip_audit -r requirements.txt
       - name: Build release assets
         run: |

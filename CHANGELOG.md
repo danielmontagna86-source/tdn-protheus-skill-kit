@@ -2,6 +2,13 @@
 
 Todas as mudanças relevantes deste projeto serão registradas neste arquivo.
 
+## [0.3.1] - 2026-08-16
+
+### Changed
+
+- Plano 02: cobertura comportamental, Actions Node 24 por SHA e gates CodeQL/Dependency Review.
+- Auditoria, SBOM, SHA256 e piso de build `setuptools>=83` passaram a integrar a validação.
+
 ## [0.3.0] - 2026-08-16
 
 ### Changed

@@ -42,6 +42,87 @@ def record(sync, page_id: int, text: str = "texto útil " * 8, version: int = 1)
 
 
 class SnapshotSyncTests(unittest.TestCase):
+    def test_store_rejects_invalid_manifest_directory_and_resume_state(self) -> None:
+        sync = load_module()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            store = sync.SnapshotStore(Path(temp_dir), 1)
+            store.root.mkdir(parents=True)
+            store.manifest_path.write_text("[]", encoding="utf-8")
+            with self.assertRaisesRegex(TypeError, "objeto JSON"):
+                store.load_manifest()
+            store.manifest_path.write_text(json.dumps({"pages": []}), encoding="utf-8")
+            with self.assertRaisesRegex(TypeError, "pages"):
+                store.load_manifest()
+            store.manifest_path.write_text(json.dumps({"root_id": 2, "pages": {}}), encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "root_id"):
+                store.load_manifest()
+            manifest = {"root_id": 1, "pages": {}, "page_directory": "../escape"}
+            with self.assertRaisesRegex(RuntimeError, "fora da raiz"):
+                store.pages_dir(manifest)
+            for value in ("[]", "not-json"):
+                store.state_path.write_text(value, encoding="utf-8")
+                with self.assertRaises((TypeError, RuntimeError)):
+                    store.load_state()
+
+    def test_snapshot_filter_resume_invalid_and_status_v1_v2(self) -> None:
+        sync = load_module()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            worker = sync.SnapshotSynchronizer(1, Path(temp_dir), 0)
+            worker.collector.list_children = lambda _page_id: []
+            worker.fetch_page = lambda page_id: record(sync, page_id, text="stub")
+            result = worker.snapshot(0, None, 1, False, False)
+            self.assertEqual(result["filtered"], 1)
+            manifest = worker.store.load_manifest()
+            self.assertEqual(sync.status(worker.store)["schema_version"], 2)
+            self.assertEqual(sync.status(worker.store)["active_pages"], 0)
+            self.assertEqual(sync.export_offline(worker.store, Path(temp_dir) / "out"), 0)
+            worker.store.write_state({"mode": "wrong", "run_id": "x", "root_id": 1})
+            with self.assertRaisesRegex(RuntimeError, "não existe estado retomável"):
+                worker.snapshot(0, None, 1, False, True)
+            worker.store.clear_state()
+            self.assertEqual(manifest["schema_version"], 2)
+
+    def test_refresh_handles_removed_reactivated_and_multiple_pages(self) -> None:
+        sync = load_module()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            worker = sync.SnapshotSynchronizer(1, Path(temp_dir), 0)
+            worker.discover_tree = lambda _depth, _limit: [1, 2]
+            worker.fetch_page = lambda page_id: record(sync, page_id, version=1)
+            worker.snapshot(1, None, 1, False, False)
+            worker.discover_tree = lambda _depth, _limit: [1, 3]
+            worker.fetch_version = lambda page_id: None if page_id == 1 else {"number": 2, "when": "v2"}
+            worker.fetch_page = lambda page_id: record(sync, page_id, version=2)
+            result = worker.refresh(1, None)
+            manifest = worker.store.load_manifest()
+            self.assertEqual(result["removed"], 2)
+            self.assertEqual(manifest["pages"]["1"]["status"], "removed")
+            self.assertEqual(manifest["pages"]["2"]["status"], "removed")
+            self.assertEqual(manifest["pages"]["3"]["status"], "active")
+            worker.discover_tree = lambda _depth, _limit: [1, 3]
+            worker.fetch_version = lambda page_id: {"number": 3, "when": "v3"}
+            worker.fetch_page = lambda page_id: record(sync, page_id, version=3)
+            worker.refresh(1, None)
+            self.assertEqual(worker.store.load_manifest()["pages"]["1"]["status"], "active")
+
+    def test_publish_failure_and_generation_collision_do_not_replace_active_manifest(self) -> None:
+        sync = load_module()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            store = sync.SnapshotStore(Path(temp_dir), 1)
+            run_id = "run"
+            (store.staging_dir(run_id) / "pages").mkdir(parents=True)
+            store.manifest_path.parent.mkdir(parents=True, exist_ok=True)
+            store.manifest_path.write_bytes(b'{"old":true}')
+            with (
+                patch.object(sync, "write_json_atomic", side_effect=OSError("disk")),
+                self.assertRaisesRegex(OSError, "disk"),
+            ):
+                store.publish(run_id, {"root_id": 1, "pages": {}})
+            self.assertEqual(store.manifest_path.read_bytes(), b'{"old":true}')
+            self.assertFalse((store.root / "generations" / run_id).exists())
+            (store.staging_dir(run_id) / "pages").mkdir(parents=True)
+            (store.root / "generations" / run_id).mkdir(parents=True)
+            with self.assertRaisesRegex(RuntimeError, "generation_id"):
+                store.publish(run_id, {"root_id": 1, "pages": {}})
     def test_v1_snapshot_is_readable_and_exportable(self) -> None:
         sync = load_module()
         with tempfile.TemporaryDirectory() as temp_dir:
