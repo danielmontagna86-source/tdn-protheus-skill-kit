@@ -58,15 +58,15 @@ Nenhum bloqueio confirmado localmente. A disponibilidade final de Dependency Rev
 
 ## Limitações
 
-Matriz GitHub e scanners hospedados ainda pendentes nesta revisão local. CodeQL Advanced não pode coexistir com o Default Setup já habilitado pela plataforma; o workflow redundante foi removido.
+A matriz GitHub concluiu PASS em Windows, Ubuntu e macOS com Python 3.11/3.12. CodeQL Advanced não pode coexistir com o Default Setup já habilitado pela plataforma; o workflow redundante foi removido. A interface disponível não expõe a contagem Critical/High do Default Setup. O Dependency Graph do MCP está desabilitado, bloqueando Dependency Review.
 
 ## Commits exatos
 
-Baseline Skill `8c964b1`; MCP `53e171c`. Commits do Plano 02 serão preenchidos após push.
+Baseline Skill `8c964b1`; MCP `53e171c`. PR heads: Skill `105b9ce`; MCP `0b0ff28` (antes da consolidação deste relatório).
 
 ## PRs
 
-Serão preenchidos após criação, sem merge.
+[Skill PR #10](https://github.com/danielmontagna86-source/tdn-protheus-skill-kit/pull/10) e [MCP PR #12](https://github.com/danielmontagna86-source/tdn-protheus-mcp/pull/12), ambos draft e sem merge.
 
 ## Resultado final
 

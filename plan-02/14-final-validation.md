@@ -7,9 +7,9 @@
 | pip-audit | PASS | PASS |
 | SBOM/SHA/artefatos | PASS | PASS |
 | stdio/wheel/sdist/Twine | N/A | PASS |
-| CodeQL | Default Setup da plataforma | Default Setup da plataforma |
-| Dependency Review | PENDENTE GitHub | PENDENTE GitHub |
-| 3 SO × 2 Python | PENDENTE GitHub | PENDENTE GitHub |
+| CodeQL | Default Setup; alertas não expostos | Default Setup; alertas não expostos |
+| Dependency Review | PASS | BLOCKED_BY_PLATFORM |
+| 3 SO × 2 Python | PASS | PASS |
 | live/no-evidence/stale/rollback | PASS | PASS |
 
-STATUS ATUAL: PARTIAL até as execuções hospedadas concluírem. Sem merge.
+STATUS ATUAL: PARTIAL. CI e testes práticos concluíram; CodeQL Critical/High não foi comprovado via interface e o MCP depende da habilitação do Dependency Graph. Sem merge.
