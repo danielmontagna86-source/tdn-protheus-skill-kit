@@ -30,7 +30,7 @@ jobs:
       - name: Validate portable skill
         run: python coletando-documentacao-tdn-protheus/scripts/validate_skill.py coletando-documentacao-tdn-protheus
       - name: Static analysis
-        run: python -m ruff check install.py package.py coletando-documentacao-tdn-protheus/scripts tests
+        run: python -m ruff check install.py package.py coletando-documentacao-tdn-protheus/scripts tests --output-format=github
       - name: Run tests with coverage
         run: python -m coverage run --branch --source=install.py,package.py,coletando-documentacao-tdn-protheus/scripts -m unittest discover -s tests -p "test_*.py" -v
       - name: Coverage gate
