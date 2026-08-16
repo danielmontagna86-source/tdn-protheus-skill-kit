@@ -194,18 +194,16 @@ class SnapshotSyncTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir) / "1"
             lock = sync.SnapshotLock(root)
-            with lock, self.assertRaisesRegex(RuntimeError, "outra atualização"):
-                with sync.SnapshotLock(root):
-                    pass
+            with lock, self.assertRaisesRegex(RuntimeError, "outra atualização"), sync.SnapshotLock(root):
+                pass
             self.assertFalse(lock.path.exists())
 
             lock.path.parent.mkdir(parents=True, exist_ok=True)
             lock.path.write_text("orphan", encoding="utf-8")
             old_time = 1
             sync.os.utime(lock.path, (old_time, old_time))
-            with self.assertRaisesRegex(RuntimeError, "lock órfão"):
-                with sync.SnapshotLock(root):
-                    pass
+            with self.assertRaisesRegex(RuntimeError, "lock órfão"), sync.SnapshotLock(root):
+                pass
             self.assertTrue(lock.path.exists())
 
     def test_dry_run_is_bounded_and_never_publishes(self) -> None:
