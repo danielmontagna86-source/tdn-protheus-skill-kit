@@ -9,7 +9,7 @@ Use esta skill como **único escritor do snapshot local**. O MCP complementar ap
 
 ## Segurança e dependências
 
-- Python 3.11+, `requests`, `beautifulsoup4` e `langchain-text-splitters` para processamento JSONL.
+- Python 3.11+, `requests` e `beautifulsoup4`. O chunking JSONL é implementado pelo próprio projeto, sem framework de RAG adicional.
 - API pública observada: `https://tdn.totvs.com/rest/api`.
 - Não contorne autenticação, CAPTCHA, bloqueios ou limites.
 - Use raízes específicas, delays, limites de páginas/profundidade e dry-run antes de coletas amplas.
@@ -62,6 +62,8 @@ python scripts/sync_tdn_snapshot.py refresh --root-id 235312129 --cache-dir ./td
 
 Apenas um escritor por raiz é permitido. Páginas inalteradas são copiadas para a nova geração sem baixar novamente o corpo. Páginas removidas recebem `status: removed`; páginas que virarem stubs recebem `status: filtered` e não mantêm conteúdo antigo como ativo.
 
+Se uma execução for encerrada de forma abrupta e deixar `.snapshot.lock`, confirme primeiro que não existe outro escritor ativo antes de remover esse lock manualmente. O projeto não apaga locks antigos automaticamente.
+
 ## Export offline e chunks
 
 ```bash
@@ -92,5 +94,5 @@ Confira páginas ativas, filtradas, removidas, erros, URLs, data de coleta e amo
 - `scripts/collect_tdn.py`: coleta direta simples.
 - `scripts/locate_tdn_pages.py`: descoberta limitada por título.
 - `scripts/sync_tdn_snapshot.py`: snapshot v2, refresh transacional, export offline e status.
-- `scripts/process_tdn.py`: processamento JSONL e metadados.
+- `scripts/process_tdn.py`: chunking interno, processamento JSONL e metadados.
 - `scripts/validate_skill.py`: validação estrutural sem rede.
