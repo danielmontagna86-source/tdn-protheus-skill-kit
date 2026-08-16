@@ -76,30 +76,37 @@ jobs:
           }
           pathlib.Path('live-mcp.json').write_text(json.dumps(config, indent=2), encoding='utf-8')
           PY
-      - name: Doctor index and cited search
+      - name: Doctor and index
         run: |
           tdn-protheus-mcp doctor --config live-mcp.json --json | tee live-evidence/04-doctor-before-index.json
           tdn-protheus-mcp index --config live-mcp.json --root-id 908337356 --json | tee live-evidence/05-index.json
-          tdn-protheus-mcp search --config live-mcp.json --root-id 908337356 --query SD1100I --routine SD1100I --json | tee live-evidence/06-search.json
+      - name: Search and retain citation metadata only
+        run: |
+          tdn-protheus-mcp search --config live-mcp.json --root-id 908337356 --query SD1100I --routine SD1100I --json > "$RUNNER_TEMP/search-result.json"
           python - <<'PY'
-          import json, pathlib
-          payload = json.loads(pathlib.Path('live-evidence/06-search.json').read_text(encoding='utf-8'))
+          import json, os, pathlib
+          source = pathlib.Path(os.environ['RUNNER_TEMP']) / 'search-result.json'
+          payload = json.loads(source.read_text(encoding='utf-8'))
           results = payload.get('results', [])
-          assert results, payload
+          assert results, {'root_id': payload.get('root_id'), 'result_count': 0}
           first = results[0]
-          assert first['page_id'] == '908337356', first
-          assert first['source_url'].startswith('https://tdn.totvs.com/'), first
+          assert first['page_id'] == '908337356', {k: first.get(k) for k in ('page_id','chunk_id','title','source_url')}
+          assert first['source_url'].startswith('https://tdn.totvs.com/'), first['source_url']
           assert first['chunk_id'], first
           summary = {k: first[k] for k in ('page_id','chunk_id','title','source_url','version_number')}
-          pathlib.Path('live-evidence/07-citation-summary.json').write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding='utf-8')
+          pathlib.Path('live-evidence/06-citation-summary.json').write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding='utf-8')
+          source.unlink(missing_ok=True)
           PY
       - name: Prove anti-hallucination filter
         run: |
-          tdn-protheus-mcp search --config live-mcp.json --root-id 908337356 --query SD1100I --routine MT103VALIDAITENSXYZ --json | tee live-evidence/08-no-evidence.json
+          tdn-protheus-mcp search --config live-mcp.json --root-id 908337356 --query SD1100I --routine MT103VALIDAITENSXYZ --json > "$RUNNER_TEMP/no-evidence.json"
           python - <<'PY'
-          import json, pathlib
-          payload = json.loads(pathlib.Path('live-evidence/08-no-evidence.json').read_text(encoding='utf-8'))
-          assert payload.get('results') == [], payload
+          import json, os, pathlib
+          source = pathlib.Path(os.environ['RUNNER_TEMP']) / 'no-evidence.json'
+          payload = json.loads(source.read_text(encoding='utf-8'))
+          assert payload.get('results') == [], {'root_id': payload.get('root_id'), 'result_count': len(payload.get('results', []))}
+          pathlib.Path('live-evidence/07-no-evidence-summary.json').write_text(json.dumps({'root_id': payload.get('root_id'), 'result_count': 0}, indent=2), encoding='utf-8')
+          source.unlink(missing_ok=True)
           PY
       - name: Upload bounded evidence
         if: always()
