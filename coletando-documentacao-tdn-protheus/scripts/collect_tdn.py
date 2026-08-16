@@ -4,7 +4,6 @@ from __future__ import annotations
 import argparse
 import json
 import re
-import sys
 import time
 from collections import deque
 from pathlib import Path
@@ -15,7 +14,10 @@ from bs4 import BeautifulSoup
 
 API = "https://tdn.totvs.com/rest/api"
 WEB = "https://tdn.totvs.com"
-USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0.0.0 Safari/537.36"
+USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 Chrome/124.0.0.0 Safari/537.36"
+)
 
 
 class TDNCollector:
@@ -46,7 +48,11 @@ class TDNCollector:
         candidate = urljoin(current_url, link)
         expected = urlsplit(API)
         parsed = urlsplit(candidate)
-        if parsed.scheme != expected.scheme or parsed.netloc != expected.netloc or not parsed.path.startswith(expected.path + "/"):
+        if (
+            parsed.scheme != expected.scheme
+            or parsed.netloc != expected.netloc
+            or not parsed.path.startswith(expected.path + "/")
+        ):
             raise RuntimeError("paginação fora da API pública TDN configurada")
         return candidate
 
@@ -62,7 +68,11 @@ class TDNCollector:
     def get_json(self, url: str) -> dict | None:
         for attempt in range(3):
             try:
-                response = self.session.get(url, timeout=self._remaining_timeout(), allow_redirects=False)
+                response = self.session.get(
+                    url,
+                    timeout=self._remaining_timeout(),
+                    allow_redirects=False,
+                )
                 if response.status_code == 404:
                     return None
                 if 300 <= response.status_code < 400:
@@ -70,9 +80,9 @@ class TDNCollector:
                 response.raise_for_status()
                 data = response.json()
                 if not isinstance(data, dict):
-                    raise RuntimeError("resposta JSON da TDN deve ser objeto")
+                    raise TypeError("resposta JSON da TDN deve ser objeto")
                 return data
-            except (requests.RequestException, ValueError, RuntimeError) as error:
+            except (requests.RequestException, ValueError, TypeError, RuntimeError) as error:
                 if attempt == 2:
                     self.errors.append({"url": url, "error": str(error)})
                     raise RuntimeError(f"Falha definitiva na API: {url}") from error
@@ -89,15 +99,15 @@ class TDNCollector:
                 return children
             batch = data.get("results", [])
             if not isinstance(batch, list):
-                raise RuntimeError("lista de filhos inválida")
+                raise TypeError("lista de filhos inválida")
             children.extend(item for item in batch if isinstance(item, dict))
             links = data.get("_links", {})
             if not isinstance(links, dict):
-                raise RuntimeError("links de paginação inválidos")
+                raise TypeError("links de paginação inválidos")
             next_link = links.get("next")
             if next_link:
                 if not isinstance(next_link, str):
-                    raise RuntimeError("link de paginação inválido")
+                    raise TypeError("link de paginação inválido")
                 url = self._trusted_api_url(url, next_link)
                 continue
             if len(batch) < limit:
@@ -115,12 +125,18 @@ class TDNCollector:
         for table in soup.find_all("table"):
             rows = []
             for tr in table.find_all("tr"):
-                cells = [cell.get_text(" ", strip=True) for cell in tr.find_all(["th", "td"])]
+                cells = [
+                    cell.get_text(" ", strip=True)
+                    for cell in tr.find_all(["th", "td"])
+                ]
                 if cells:
                     rows.append(" | ".join(cells))
             if rows:
-                table.replace_with(BeautifulSoup("\n" + "\n".join(rows) + "\n", "html.parser"))
-        return re.sub(r"\n{3,}", "\n\n", soup.get_text(separator="\n", strip=True)).strip()
+                table.replace_with(
+                    BeautifulSoup("\n" + "\n".join(rows) + "\n", "html.parser")
+                )
+        text = soup.get_text(separator="\n", strip=True)
+        return re.sub(r"\n{3,}", "\n\n", text).strip()
 
     def fetch_page(self, page_id: int) -> dict | None:
         data = self.get_json(f"{API}/content/{page_id}?expand=body.storage")
@@ -130,10 +146,16 @@ class TDNCollector:
         storage = body.get("storage", {}) if isinstance(body, dict) else {}
         html = storage.get("value", "") if isinstance(storage, dict) else ""
         if not isinstance(html, str):
-            raise RuntimeError("body.storage.value inválido")
+            raise TypeError("body.storage.value inválido")
         links = data.get("_links", {})
         webui = links.get("webui", "") if isinstance(links, dict) else ""
-        return {"id": page_id, "title": str(data.get("title", f"page-{page_id}")), "url": self._trusted_web_url(str(webui), page_id), "text": self.html_to_text(html), "body_len": len(html)}
+        return {
+            "id": page_id,
+            "title": str(data.get("title", f"page-{page_id}")),
+            "url": self._trusted_web_url(str(webui), page_id),
+            "text": self.html_to_text(html),
+            "body_len": len(html),
+        }
 
     def crawl(self, root_id: int, max_depth: int) -> list[dict]:
         pages: list[dict] = []
@@ -156,9 +178,14 @@ class TDNCollector:
         return pages
 
 
-def write_output(pages: list[dict], errors: list[dict[str, str]], output_dir: Path) -> None:
+def write_output(
+    pages: list[dict], errors: list[dict[str, str]], output_dir: Path
+) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
-    (output_dir / "tdn_pages.json").write_text(json.dumps(pages, ensure_ascii=False, indent=2), encoding="utf-8")
+    (output_dir / "tdn_pages.json").write_text(
+        json.dumps(pages, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
     with (output_dir / "tdn_pages.jsonl").open("w", encoding="utf-8") as file:
         for page in pages:
             file.write(json.dumps(page, ensure_ascii=False) + "\n")
@@ -188,7 +215,9 @@ def main() -> None:
         with (args.output_dir / "tdn_errors.jsonl").open("w", encoding="utf-8") as file:
             for item in collector.errors:
                 file.write(json.dumps(item, ensure_ascii=False) + "\n")
-        raise SystemExit(f"Coleta interrompida para evitar dataset incompleto: {error}") from error
+        raise SystemExit(
+            f"Coleta interrompida para evitar dataset incompleto: {error}"
+        ) from error
     write_output(pages, collector.errors, args.output_dir)
     print(f"OK: {len(pages)} páginas úteis em {args.output_dir}")
 
