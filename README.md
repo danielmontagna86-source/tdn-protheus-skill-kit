@@ -115,7 +115,13 @@ Depois de confirmar uma página candidata, prefira um snapshot específico com `
 
 ## Criar um snapshot local
 
-Entre na pasta da skill instalada ou use os scripts diretamente no clone.
+Se estiver trabalhando diretamente no clone do repositório, entre primeiro na pasta da skill:
+
+```bash
+cd coletando-documentacao-tdn-protheus
+```
+
+Se estiver usando uma instalação feita por `install.py`, entre na pasta instalada da skill no harness correspondente.
 
 Faça primeiro um dry-run limitado:
 
@@ -206,7 +212,7 @@ Guia complementar no MCP: [`docs/companion-skill.md`](https://github.com/danielm
 
 ## Validação e desenvolvimento
 
-Valide a estrutura da skill:
+A partir da raiz do repositório, valide a estrutura da skill:
 
 ```bash
 python coletando-documentacao-tdn-protheus/scripts/validate_skill.py coletando-documentacao-tdn-protheus
