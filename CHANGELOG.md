@@ -2,7 +2,7 @@
 
 Todas as mudanças relevantes deste projeto serão registradas neste arquivo.
 
-## [Unreleased]
+## [0.3.0] - 2026-08-16
 
 ### Changed
 
@@ -13,6 +13,13 @@ Todas as mudanças relevantes deste projeto serão registradas neste arquivo.
 - Metadados Protheus reconhecem tabelas comuns, rotinas como `PLRSTPR1`, parâmetros e pontos de entrada como `SD1100I`.
 - Instalador usa staging e rollback; falhas de validação/dependências não substituem a instalação anterior.
 - Páginas que viram stubs recebem `filtered` e não mantêm conteúdo antigo ativo.
+- Dependências de runtime foram reduzidas a `requests` e `beautifulsoup4`; o chunking é interno e determinístico.
+- CI e release exigem Ruff, cobertura de branch mínima de 70%, auditoria de dependências, ZIP por allowlist e SBOM.
+
+### Added
+
+- Testes transacionais para rollback, lock, estado parcial, deadline de refresh e migração v1 → v2.
+- Integração live limitada que coleta uma página pública TDN, gera snapshot v2, indexa com o MCP complementar e valida evidência/no-evidence.
 
 ## [0.2.1] - 2026-08-16
 
