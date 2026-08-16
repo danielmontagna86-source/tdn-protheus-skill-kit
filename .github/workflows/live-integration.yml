@@ -1,0 +1,110 @@
+name: Live TDN Integration
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live-sd1100i:
+    name: Skill v2 -> MCP -> cited SD1100I
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout Skill Kit
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          path: skill-kit
+      - name: Checkout MCP hardening branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          repository: danielmontagna86-source/tdn-protheus-mcp
+          ref: hardening/full-validation
+          path: mcp
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install both projects
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r skill-kit/requirements.txt
+          python -m pip install ./mcp
+      - name: Prepare evidence directory
+        run: mkdir -p live-evidence
+      - name: Dry-run one known public TDN page
+        run: |
+          python skill-kit/coletando-documentacao-tdn-protheus/scripts/sync_tdn_snapshot.py snapshot \
+            --root-id 908337356 \
+            --cache-dir "$RUNNER_TEMP/tdn-live-cache" \
+            --max-depth 0 \
+            --max-duration-seconds 60 \
+            --dry-run | tee live-evidence/01-dry-run.json
+      - name: Create bounded snapshot v2
+        run: |
+          python skill-kit/coletando-documentacao-tdn-protheus/scripts/sync_tdn_snapshot.py snapshot \
+            --root-id 908337356 \
+            --cache-dir "$RUNNER_TEMP/tdn-live-cache" \
+            --max-depth 0 \
+            --checkpoint-every 1 | tee live-evidence/02-snapshot.json
+          python - <<'PY'
+          import json, os, pathlib
+          root = pathlib.Path(os.environ['RUNNER_TEMP']) / 'tdn-live-cache' / '908337356'
+          manifest = json.loads((root / 'manifest.json').read_text(encoding='utf-8'))
+          assert manifest['schema_version'] == 2, manifest
+          assert manifest['root_id'] == 908337356, manifest
+          active = [pid for pid, item in manifest['pages'].items() if item.get('status') == 'active']
+          assert active == ['908337356'], manifest
+          evidence = {k: manifest.get(k) for k in ('schema_version','root_id','generation_id','page_directory','last_complete_at')}
+          evidence['active_page_ids'] = active
+          pathlib.Path('live-evidence/03-manifest-summary.json').write_text(json.dumps(evidence, ensure_ascii=False, indent=2), encoding='utf-8')
+          PY
+      - name: Configure read-only MCP
+        run: |
+          python - <<'PY'
+          import json, os, pathlib
+          config = {
+            'cache_root': str(pathlib.Path(os.environ['RUNNER_TEMP']) / 'tdn-live-cache'),
+            'allowed_root_ids': ['908337356'],
+            'offline': True,
+            'allow_mutations': False,
+            'max_results': 20,
+            'max_chars': 24000,
+          }
+          pathlib.Path('live-mcp.json').write_text(json.dumps(config, indent=2), encoding='utf-8')
+          PY
+      - name: Doctor index and cited search
+        run: |
+          tdn-protheus-mcp doctor --config live-mcp.json --json | tee live-evidence/04-doctor-before-index.json
+          tdn-protheus-mcp index --config live-mcp.json --root-id 908337356 --json | tee live-evidence/05-index.json
+          tdn-protheus-mcp search --config live-mcp.json --root-id 908337356 --query SD1100I --routine SD1100I --json | tee live-evidence/06-search.json
+          python - <<'PY'
+          import json, pathlib
+          payload = json.loads(pathlib.Path('live-evidence/06-search.json').read_text(encoding='utf-8'))
+          results = payload.get('results', [])
+          assert results, payload
+          first = results[0]
+          assert first['page_id'] == '908337356', first
+          assert first['source_url'].startswith('https://tdn.totvs.com/'), first
+          assert first['chunk_id'], first
+          summary = {k: first[k] for k in ('page_id','chunk_id','title','source_url','version_number')}
+          pathlib.Path('live-evidence/07-citation-summary.json').write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding='utf-8')
+          PY
+      - name: Prove anti-hallucination filter
+        run: |
+          tdn-protheus-mcp search --config live-mcp.json --root-id 908337356 --query SD1100I --routine MT103VALIDAITENSXYZ --json | tee live-evidence/08-no-evidence.json
+          python - <<'PY'
+          import json, pathlib
+          payload = json.loads(pathlib.Path('live-evidence/08-no-evidence.json').read_text(encoding='utf-8'))
+          assert payload.get('results') == [], payload
+          PY
+      - name: Upload bounded evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: live-tdn-sd1100i-evidence
+          path: live-evidence/
+          if-no-files-found: warn
