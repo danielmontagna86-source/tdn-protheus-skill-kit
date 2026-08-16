@@ -16,6 +16,7 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 ### Changed
 
 - Dry-run de snapshot agora aceita prazo global e devolve estimativa parcial estruturada ao atingir prazo ou limite de páginas, sem publicar snapshot incompleto.
+- Adicionado `locate_tdn_pages.py` para descoberta paginada e limitada por metadados de título antes de criar snapshots de páginas específicas.
 
 ## [0.1.0] - 2026-08-15
 

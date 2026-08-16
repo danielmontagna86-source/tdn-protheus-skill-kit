@@ -158,6 +158,22 @@ class SnapshotSyncTests(unittest.TestCase):
             self.assertEqual(result["stop_reason"], "max-duration")
             self.assertLessEqual(clock[0], 0.1)
 
+    def test_depth_zero_snapshot_saves_only_the_selected_root_page(self) -> None:
+        sync_module = load_module()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            synchronizer = sync_module.SnapshotSynchronizer(999, Path(temp_dir), 0)
+            synchronizer.collector.list_children = lambda _page_id: self.fail("não deve listar filhos")
+            synchronizer.fetch_page = lambda page_id: sync_module.page_record(
+                page_id, "MATA103", "https://tdn.totvs.com/mata103", "texto útil " * 8,
+                120, 4, "2026-08-16",
+            )
+
+            result = synchronizer.snapshot(0, None, 1, False, False)
+            manifest = synchronizer.store.load_manifest()
+
+        self.assertEqual(result["pages_saved"], 1)
+        self.assertEqual(list(manifest["pages"]), ["999"])
+
     def test_resume_finishes_partial_snapshot_and_publishes_once_complete(self) -> None:
         sync_module = load_module()
         with tempfile.TemporaryDirectory() as temp_dir:

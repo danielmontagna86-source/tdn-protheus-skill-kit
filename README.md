@@ -11,6 +11,8 @@ O código usa Apache-2.0. A licença não transfere direitos sobre conteúdo, ma
 - Inicia offline e read-only. Não baixa documentos durante consultas.
 - O repositório e seu ZIP também incluem a skill de snapshot para obtenção e atualização explícita de conteúdo local.
 
+Para localizar uma página dentro de uma raiz TDN ampla, a skill inclui `locate_tdn_pages.py`: descoberta limitada por metadados de títulos, com limites obrigatórios de profundidade, páginas, duração e candidatos. O fluxo recomendado é localizar → confirmar uma página candidata → `snapshot --max-depth 0` → indexar localmente; não use uma descoberta parcial como prova de ausência documental.
+
 ## Início rápido
 
 Depois da publicação no PyPI:
