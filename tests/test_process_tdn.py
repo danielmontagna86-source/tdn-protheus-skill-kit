@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import unittest
+from itertools import pairwise
 from pathlib import Path
 
 ROOT = Path(__file__).parents[1]
@@ -40,7 +41,7 @@ class MetadataTests(unittest.TestCase):
         self.assertGreater(len(first), 1)
         self.assertTrue(all(0 < len(chunk) <= 500 for chunk in first))
         # Algum conteúdo de borda deve aparecer em chunks consecutivos por causa do overlap.
-        self.assertTrue(any(left[-30:] in right for left, right in zip(first, first[1:])))
+        self.assertTrue(any(left[-30:] in right for left, right in pairwise(first)))
 
     def test_chunker_rejects_invalid_overlap(self) -> None:
         module = load_module()
