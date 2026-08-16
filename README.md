@@ -148,6 +148,19 @@ python scripts/sync_tdn_snapshot.py snapshot \
 
 Interrupções podem ser retomadas com `--resume` quando aplicável.
 
+Novos snapshots usam schema v2 e são publicados por geração imutável:
+
+```text
+cache_root/<root_id>/
+├── manifest.json
+└── generations/
+    └── <generation_id>/
+        └── pages/
+            └── <page_id>.json
+```
+
+O `manifest.json` aponta para a geração ativa por `page_directory`. Snapshots v1 legados em `pages/` continuam legíveis e são migrados para v2 em um refresh bem-sucedido.
+
 ## Atualizar e exportar offline
 
 Refresh incremental:
@@ -184,9 +197,11 @@ A skill e o MCP são projetos separados, mas podem compartilhar o mesmo snapshot
 ```text
 Skill Kit
    ↓
-cache_root/<root_id>/manifest.json + pages/
+cache_root/<root_id>/manifest.json
    ↓
-TDN Protheus MCP
+page_directory → generations/<generation_id>/pages/
+   ↓
+TDN Protheus MCP (read-only)
    ↓
 SQLite FTS5 + busca + contexto + citações
 ```
@@ -197,7 +212,9 @@ Ao usar os dois juntos:
 2. use o mesmo caminho na skill e no MCP;
 3. crie ou atualize o snapshot com a skill;
 4. execute novamente `tdn-protheus-mcp index` após cada snapshot/refresh;
-5. mantenha o MCP em `offline=true` e `allow_mutations=false` quando quiser apenas consulta local.
+5. mantenha o MCP em `offline=true` e `allow_mutations=false` quando esses campos legados forem declarados explicitamente na configuração.
+
+O MCP atual é somente leitura e recusa consultas quando o fingerprint do índice não corresponde ao manifesto ativo (`POLICY_INDEX_STALE`).
 
 Guia complementar no MCP: [`docs/companion-skill.md`](https://github.com/danielmontagna86-source/tdn-protheus-mcp/blob/main/docs/companion-skill.md).
 
