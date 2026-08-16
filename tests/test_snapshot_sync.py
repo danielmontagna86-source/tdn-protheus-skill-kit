@@ -112,6 +112,68 @@ class SnapshotSyncTests(unittest.TestCase):
                 synchronizer.discover_tree(8, 1)
             self.assertIsNone(synchronizer.store.load_manifest())
 
+    def test_dry_run_returns_a_partial_estimate_when_the_page_limit_is_reached(self) -> None:
+        sync_module = load_module()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            synchronizer = sync_module.SnapshotSynchronizer(235312129, Path(temp_dir), 0)
+            synchronizer.collector.list_children = lambda _page_id: [{"id": "2"}]
+
+            result = synchronizer.snapshot(8, 1, 1, True, False)
+
+            self.assertEqual(result["mode"], "dry-run")
+            self.assertFalse(result["complete"])
+            self.assertEqual(result["stop_reason"], "max-pages")
+            self.assertEqual(result["pages_discovered"], 1)
+            self.assertIsNone(synchronizer.store.load_manifest())
+
+    def test_dry_run_returns_a_partial_estimate_when_the_duration_expires(self) -> None:
+        sync_module = load_module()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            synchronizer = sync_module.SnapshotSynchronizer(235312129, Path(temp_dir), 0)
+            with patch.object(sync_module.time, "monotonic", side_effect=(0, 2)):
+                result = synchronizer.snapshot(8, None, 1, True, False, max_duration_seconds=1)
+
+            self.assertEqual(result["mode"], "dry-run")
+            self.assertFalse(result["complete"])
+            self.assertEqual(result["stop_reason"], "max-duration")
+            self.assertEqual(result["pages_discovered"], 0)
+
+    def test_dry_run_does_not_sleep_past_its_global_duration(self) -> None:
+        sync_module = load_module()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            synchronizer = sync_module.SnapshotSynchronizer(235312129, Path(temp_dir), 1)
+            synchronizer.collector.list_children = lambda _page_id: []
+            clock = [0.0]
+
+            def monotonic() -> float:
+                return clock[0]
+
+            def sleep(seconds: float) -> None:
+                clock[0] += seconds
+
+            with patch.object(sync_module.time, "monotonic", monotonic), patch.object(sync_module.time, "sleep", sleep):
+                result = synchronizer.snapshot(0, None, 1, True, False, max_duration_seconds=0.1)
+
+            self.assertFalse(result["complete"])
+            self.assertEqual(result["stop_reason"], "max-duration")
+            self.assertLessEqual(clock[0], 0.1)
+
+    def test_depth_zero_snapshot_saves_only_the_selected_root_page(self) -> None:
+        sync_module = load_module()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            synchronizer = sync_module.SnapshotSynchronizer(999, Path(temp_dir), 0)
+            synchronizer.collector.list_children = lambda _page_id: self.fail("não deve listar filhos")
+            synchronizer.fetch_page = lambda page_id: sync_module.page_record(
+                page_id, "MATA103", "https://tdn.totvs.com/mata103", "texto útil " * 8,
+                120, 4, "2026-08-16",
+            )
+
+            result = synchronizer.snapshot(0, None, 1, False, False)
+            manifest = synchronizer.store.load_manifest()
+
+        self.assertEqual(result["pages_saved"], 1)
+        self.assertEqual(list(manifest["pages"]), ["999"])
+
     def test_resume_finishes_partial_snapshot_and_publishes_once_complete(self) -> None:
         sync_module = load_module()
         with tempfile.TemporaryDirectory() as temp_dir:

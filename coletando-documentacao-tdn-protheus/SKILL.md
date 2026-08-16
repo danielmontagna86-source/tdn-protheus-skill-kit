@@ -66,10 +66,20 @@ Antes de entregar ao Hermes, valide que o arquivo não está vazio, cada linha �
 
 Para trabalhar sem rede depois da primeira coleta, use `scripts/sync_tdn_snapshot.py`. O cache é sempre limitado a uma raiz escolhida; não existe modo para baixar o espaço `PROT` inteiro.
 
+### Localizar antes de coletar uma raiz ampla
+
+Quando a raiz possui muitos filhos, primeiro use `scripts/locate_tdn_pages.py`. Ele consulta somente os metadados paginados de `child/page`; não baixa `body.storage` e nunca deve substituir um snapshot. Todos os limites são obrigatórios para manter a descoberta controlada:
+
+```bash
+python scripts/locate_tdn_pages.py --root-id 811253174 --term MATA103 --term SD1100I --term PLRSTPR1 --max-depth 1 --max-list-pages 100 --max-duration-seconds 120 --max-candidates 20 --delay 0.35 --json
+```
+
+O resultado tem `complete`, `stop_reason`, `list_pages_fetched`, `nodes_seen`, `candidates` e `next_cursor_available`. `complete: false` significa descoberta incompleta: registre o cursor/limite e não conclua que o documento não existe. Confirme o conteúdo de cada candidato com uma única leitura pública antes de criar um snapshot individual com `--max-depth 0`.
+
 1. Estime antes de baixar. Isto navega a árvore, mas não baixa corpos nem grava cache:
 
    ```bash
-   python scripts/sync_tdn_snapshot.py snapshot --root-id 235312129 --cache-dir ./tdn-cache --max-depth 8 --dry-run
+   python scripts/sync_tdn_snapshot.py snapshot --root-id 235312129 --cache-dir ./tdn-cache --max-depth 8 --max-duration-seconds 120 --dry-run
    ```
 
 2. Inicie o snapshot somente após revisar a estimativa. Protheus 12 pode levar 30–50 minutos ou mais e ocupar espaço considerável. Interrupções podem ser retomadas com `--resume`:
@@ -77,6 +87,8 @@ Para trabalhar sem rede depois da primeira coleta, use `scripts/sync_tdn_snapsho
    ```bash
    python scripts/sync_tdn_snapshot.py snapshot --root-id 235312129 --cache-dir ./tdn-cache --max-depth 8 --checkpoint-every 25
    ```
+
+   Em árvores amplas, mantenha `--max-duration-seconds` no dry-run. Se o prazo ou `--max-pages` for atingido, ele devolve JSON com `complete: false`; não inicia a coleta nem publica manifesto parcial. Escolha uma página-raiz mais específica antes de fazer o snapshot real.
 
 3. Gere a saída sem HTTP e processe-a normalmente:
 
@@ -109,6 +121,7 @@ Para trabalhar sem rede depois da primeira coleta, use `scripts/sync_tdn_snapsho
 ## Recursos
 
 - `scripts/collect_tdn.py`: coletor reexecutável; comece por `--help`.
+- `scripts/locate_tdn_pages.py`: descoberta limitada por metadados de título; use antes de coletar raízes amplas.
 - `scripts/process_tdn.py`: regex Protheus e chunking; execute somente após revisar a coleta.
 - `scripts/sync_tdn_snapshot.py`: snapshot local, refresh incremental, export offline e status; comece por `--help` e `snapshot --dry-run`.
 - `scripts/validate_skill.py`: contrato estrutural do pacote; não acessa a rede.
