@@ -14,13 +14,13 @@ Skill 40 testes/71%; MCP 29 testes/91%.
 
 ## Mudanças realizadas
 
-Skill 49 testes/80%, ações Node 24 por SHA, CodeQL, Dependency Review e piso setuptools 83. MCP eliminou warning por `model_rebuild`, adicionou teste de regressão e os mesmos gates.
+Skill 49 testes/80%, ações Node 24 por SHA, CodeQL, Dependency Review e piso setuptools 83. MCP eliminou warning por `model_rebuild`, adicionou teste de regressão e os mesmos gates. O CodeQL Default Setup foi mantido e recebeu um gate de alertas High/Critical por API oficial.
 
 ## Teste prático 1 — evidência real
 
 Comando/pergunta: snapshot da raiz 908337356; index; search `SD1100I`/routine `SD1100I`.
 Resultado: PASS.
-Evidêcia: page 908337356, chunk 908337356:0, generation e fingerprint em `12-live-test.md`.
+Evidência: page 908337356, chunk 908337356:0, generation e fingerprint em `12-live-test.md`.
 
 ## Teste prático 2 — informação inexistente
 
@@ -50,7 +50,7 @@ Warning Pydantic no MCP; Actions de artifact antigas/não pinadas; ausência de 
 
 ## Problemas corrigidos
 
-Warning eliminado+ ações atualizadas; gates e testes adicionados.
+Warning eliminado; ações atualizadas; gates e testes adicionados.
 
 ## Problemas upstream
 
@@ -58,20 +58,20 @@ Nenhum bloqueio confirmado localmente. O Dependency Graph inicialmente desabilit
 
 ## Limitações
 
-A matrix GitHub concluiu PASS em Windows, Ubuntu e macOS com Python 3.11/3.12. CodeQL Advanced não pode coexistir com o Default Setup já habilitado pela plataforma; o workflow redundante foi removido. Falta registrar, a partir da interface CodeQL, a contagem de alertas Critical/High do Default Setup.
+A matriz GitHub concluiu PASS em Windows, Ubuntu e macOS com Python 3.11/3.12. CodeQL Advanced não pode coexistir com o Default Setup já habilitado pela plataforma; o workflow redundante foi removido. O `CodeQL Alert Gate` consulta a API oficial sob `security-events: read` e comprovou zero alertas abertos High/Critical no momento de cada run.
 
 ## Commits exatos
 
-Baseline Skill `8c964b1`; MCP `53e171c`. PR heads: Skill `105b9ce`; MCP `0b0ff28` (before da consolidação deste relatório).
+Baseline Skill `8c964b1`; MCP `53e171c`. Commits de verificação CodeQL: Skill `724a1145`; MCP `4fe5ee11`.
 
-## PRS
+## PRs
 
 [Skill PR #10](https://github.com/danielmontagna86-source/tdn-protheus-skill-kit/pull/10) e [MCP PR #12](https://github.com/danielmontagna86-source/tdn-protheus-mcp/pull/12), ambos draft e sem merge.
 
 ## Resultado final
 
-PARTIAL.
+PASS.
 
 ## Conclusão técnica
 
-Os controles locais e os laboratórios obrigatórios passaram; a classificação final depende dos gates GitHub hospedados.
+Os controles locais, a matriz hospedada e os laboratórios obrigatórios passaram. Não houve P0/P1 novo identificado. Os PRs permanecem sem merge para revisão humana.
