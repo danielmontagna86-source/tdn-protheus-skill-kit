@@ -71,6 +71,10 @@ python scripts/process_tdn.py ./saida-local/tdn_pages.json ./saida-local/tdn_chu
 
 O JSONL processado contém `id`, `source_url`, `title`, `chunk_index`, `total_chunks`, `modules`, `tables`, `parameters`, `routines`, `entry_points`, `target_audience` e `content`.
 
+## Uso com Hermes Agent
+
+O JSONL produzido por `process_tdn.py` mantém o contrato de contexto já usado com **Hermes Agent**. Entregue somente o arquivo revisado de chunks; não envie cache, HTML bruto, `.venv`, segredos ou materiais privados. Antes de usar o arquivo, valide que cada linha é JSON válido e contém `source_url`, `chunk_index`, `target_audience` e `content` não vazio.
+
 ## Uso com MCP
 
 Depois de qualquer snapshot ou refresh, execute novamente o índice do projeto complementar `tdn-protheus-mcp`. O MCP deve recusar automaticamente um índice antigo com `POLICY_INDEX_STALE`.
