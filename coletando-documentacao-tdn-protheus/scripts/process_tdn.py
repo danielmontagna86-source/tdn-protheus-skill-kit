@@ -5,8 +5,9 @@ import argparse
 import json
 import re
 from pathlib import Path
-from langchain_text_splitters import RecursiveCharacterTextSplitter
 
+CHUNK_SIZE = 1200
+CHUNK_OVERLAP = 200
 MODULE_PATTERNS = {
     "ADVPL": r"\b(ADVPL|TLPP|MSEXECAUTO|EXEC_AUTO|USER\s*FUNCTION)\b",
     "SIGAFAT": r"\b(SIGAFAT|FATURAMENTO|MATA410|MATA460|MATA461|SC5|SC6|SF2|SD2)\b",
@@ -25,16 +26,56 @@ EXPLICIT_ENTRY = re.compile(r"\b(?:ADV[0-9]+_PE_[A-Z0-9_]+|[A-Z0-9]{3,}_PE(?:_[A
 PROGRAM_PREFIXES = ("MATA", "FINA", "CTBA", "FISA", "ATFA", "CNTA", "SPED")
 
 
+def split_text(text: str, chunk_size: int = CHUNK_SIZE, overlap: int = CHUNK_OVERLAP) -> list[str]:
+    """Divide texto por limites naturais com overlap determinístico e sem dependência externa."""
+    normalized = text.strip()
+    if not normalized:
+        return []
+    if chunk_size < 1 or overlap < 0 or overlap >= chunk_size:
+        raise ValueError("chunk_size/overlap inválidos")
+    chunks: list[str] = []
+    start = 0
+    while start < len(normalized):
+        hard_end = min(len(normalized), start + chunk_size)
+        end = hard_end
+        if hard_end < len(normalized):
+            lower = start + chunk_size // 2
+            candidates = (
+                normalized.rfind("\n\n", lower, hard_end),
+                normalized.rfind("\n", lower, hard_end),
+                normalized.rfind(". ", lower, hard_end),
+                normalized.rfind(" ", lower, hard_end),
+            )
+            boundary = max(candidates)
+            if boundary > start:
+                end = boundary + (2 if normalized[boundary:boundary + 2] in {"\n\n", ". "} else 1)
+        chunk = normalized[start:end].strip()
+        if chunk:
+            chunks.append(chunk)
+        if end >= len(normalized):
+            break
+        next_start = max(start + 1, end - overlap)
+        if next_start <= start:
+            raise RuntimeError("chunker não avançou")
+        start = next_start
+    return chunks
+
+
 def extract_metadata(title: str, text: str) -> dict:
     source = f"{title}\n{text}"
     upper = source.upper()
-    audience = "Dev" if any(term in upper for term in ("TLPP", "ADVPL", "PONTO DE ENTRADA", "MSEXECAUTO", "API REST", "SDK")) else "Funcional"
+    audience = "Dev" if any(
+        term in upper for term in ("TLPP", "ADVPL", "PONTO DE ENTRADA", "MSEXECAUTO", "API REST", "SDK")
+    ) else "Funcional"
     if any(term in upper for term in ("COMO EMITIR", "PASSO A PASSO", "MANUAL DO USUARIO", "OPERACIONAL")):
         audience = "Usuario_Final"
     routines = {item.upper() for item in ROUTINE.findall(source)}
     entry_points = {item.upper() for item in EXPLICIT_ENTRY.findall(source)}
     if "PONTO DE ENTRADA" in title.upper():
-        entry_points |= {item for item in {token.upper() for token in ROUTINE.findall(title)} if not item.startswith(PROGRAM_PREFIXES)}
+        entry_points |= {
+            item for item in {token.upper() for token in ROUTINE.findall(title)}
+            if not item.startswith(PROGRAM_PREFIXES)
+        }
     return {
         "modules": [name for name, pattern in MODULE_PATTERNS.items() if re.search(pattern, source, re.I)] or ["GERAL"],
         "tables": sorted({item.upper() for item in TABLE.findall(source)}),
@@ -46,17 +87,24 @@ def extract_metadata(title: str, text: str) -> dict:
 
 
 def process(pages: list[dict]) -> list[dict]:
-    splitter = RecursiveCharacterTextSplitter(chunk_size=1200, chunk_overlap=200, separators=["\n## ", "\n### ", "\n#### ", "\n\n", "\n", " ", ""])
     records: list[dict] = []
     for page in pages:
         text = (page.get("text") or "").strip()
         if not text:
             continue
         title = str(page.get("title", ""))
-        chunks = splitter.split_text(text)
+        chunks = split_text(text)
         metadata = extract_metadata(title, text)
         for index, chunk in enumerate(chunks):
-            records.append({"id": f"TDN_{page['id']}_{index:03d}", "source_url": page.get("url", ""), "title": title, "chunk_index": index, "total_chunks": len(chunks), **metadata, "content": chunk})
+            records.append({
+                "id": f"TDN_{page['id']}_{index:03d}",
+                "source_url": page.get("url", ""),
+                "title": title,
+                "chunk_index": index,
+                "total_chunks": len(chunks),
+                **metadata,
+                "content": chunk,
+            })
     return records
 
 
@@ -69,7 +117,10 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    pages = json.loads(args.pages_json.read_text(encoding="utf-8"))
+    try:
+        pages = json.loads(args.pages_json.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise SystemExit(f"não foi possível ler pages_json: {error}") from error
     if not isinstance(pages, list):
         raise SystemExit("pages_json deve conter uma lista JSON")
     records = process(pages)
