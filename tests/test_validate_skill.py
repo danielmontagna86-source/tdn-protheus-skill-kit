@@ -186,12 +186,16 @@ class ValidateSkillTests(unittest.TestCase):
             self.assertTrue((existing / "SKILL.md").is_file())
             self.assertFalse((existing / "stale.txt").exists())
 
-    def test_release_workflow_does_not_build_a_python_mcp_package(self) -> None:
+    def test_release_workflow_matches_skill_distribution_and_quality_gates(self) -> None:
         workflow = RELEASE_WORKFLOW.read_text(encoding="utf-8")
 
         self.assertNotIn("python -m build", workflow)
         self.assertNotIn("twine", workflow)
         self.assertIn("tdn-protheus-skill-kit-${GITHUB_REF_NAME}.zip", workflow)
+        self.assertIn("--rcfile=.coveragerc", workflow)
+        self.assertIn("--fail-under=70", workflow)
+        self.assertIn("pip_audit -r requirements.txt", workflow)
+        self.assertIn("v$(tr -d '\\n' < VERSION)", workflow)
 
     def test_package_is_allowlisted_and_contains_no_mcp_or_local_data(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
