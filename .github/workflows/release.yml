@@ -20,8 +20,15 @@ jobs:
           cache: pip
       - name: Verify release version
         run: test "v$(tr -d '\n' < VERSION)" = "${GITHUB_REF_NAME}"
-      - name: Install and test
-        run: python -m pip install --upgrade pip && python -m pip install -r requirements.txt cyclonedx-bom && python coletando-documentacao-tdn-protheus/scripts/validate_skill.py coletando-documentacao-tdn-protheus && python -m unittest discover -s tests -p 'test_*.py' -v
+      - name: Install validation dependencies
+        run: python -m pip install --upgrade pip && python -m pip install -r requirements.txt cyclonedx-bom coverage ruff pip-audit
+      - name: Validate and audit
+        run: |
+          python coletando-documentacao-tdn-protheus/scripts/validate_skill.py coletando-documentacao-tdn-protheus
+          python -m ruff check install.py package.py coletando-documentacao-tdn-protheus/scripts tests
+          python -m coverage run --branch --source=install.py,package.py,coletando-documentacao-tdn-protheus/scripts -m unittest discover -s tests -p 'test_*.py' -v
+          python -m coverage report --fail-under=70
+          python -m pip_audit -r requirements.txt
       - name: Build release assets
         run: |
           mkdir -p dist
