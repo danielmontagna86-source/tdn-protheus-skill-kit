@@ -6,12 +6,13 @@ Todas as mudanças relevantes deste projeto serão registradas neste arquivo.
 
 ### Changed
 
-- Skill Kit separado fisicamente do MCP; removidos pacote, testes, metadata e documentação MCP duplicados.
-- ZIP de release usa allowlist explícita e CI valida somente a skill.
-- Snapshot schema v2 usa gerações imutáveis, `page_directory`, lock por raiz e publicação atômica.
-- Refresh preserva integralmente o snapshot anterior em falhas e migra snapshots v1 para v2.
-- Páginas alteradas que viram stubs passam a `filtered`, sem reutilizar conteúdo antigo.
-- `--dry-run` e `--resume` passaram a ser mutuamente exclusivos.
+- Skill Kit separado fisicamente do MCP e ZIP de release convertido para allowlist.
+- Snapshot schema v2 com gerações imutáveis, lock por raiz e publicação atômica.
+- Refresh preserva integralmente o snapshot anterior em falhas e migra v1 para v2.
+- Coletor HTTP recusa redirects e paginação/links fora da origem pública TDN.
+- Metadados Protheus reconhecem tabelas comuns, rotinas como `PLRSTPR1`, parâmetros e pontos de entrada como `SD1100I`.
+- Instalador usa staging e rollback; falhas de validação/dependências não substituem a instalação anterior.
+- Páginas que viram stubs recebem `filtered` e não mantêm conteúdo antigo ativo.
 
 ## [0.2.1] - 2026-08-16
 
@@ -24,4 +25,4 @@ Todas as mudanças relevantes deste projeto serão registradas neste arquivo.
 
 ### Added
 
-- Skill portátil para agentes, coleta controlada, snapshot local, refresh incremental, JSON/JSONL e validação estrutural.
+- Skill portátil, coleta controlada, snapshot local, refresh incremental, JSON/JSONL e validação estrutural.
