@@ -8,8 +8,8 @@
 | SBOM/SHA/artefatos | PASS | PASS |
 | stdio/wheel/sdist/Twine | N/A | PASS |
 | CodeQL | Default Setup; alertas não expostos | Default Setup; alertas não expostos |
-| Dependency Review | PASS | BLOCKED_BY_PLATFORM |
+| Dependency Review | PASS | PASS (run `31978377887`, tentativa 2) |
 | 3 SO × 2 Python | PASS | PASS |
 | live/no-evidence/stale/rollback | PASS | PASS |
 
-STATUS ATUAL: PARTIAL. CI e testes práticos concluíram; CodeQL Critical/High não foi comprovado via interface e o MCP depende da habilitação do Dependency Graph. Sem merge.
+STATUS ATUAL: PARTIAL. CI, Dependency Review e testes práticos concluíram; falta somente a comprovação observável de que o CodeQL Default Setup não possui alertas Critical/High. Sem merge.

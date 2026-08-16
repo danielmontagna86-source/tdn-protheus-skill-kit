@@ -20,7 +20,7 @@ Skill 49 testes/80%, ações Node 24 por SHA, CodeQL, Dependency Review e piso s
 
 Comando/pergunta: snapshot da raiz 908337356; index; search `SD1100I`/routine `SD1100I`.
 Resultado: PASS.
-Evidência: page 908337356, chunk 908337356:0, generation e fingerprint em `12-live-test.md`.
+Evidêcia: page 908337356, chunk 908337356:0, generation e fingerprint em `12-live-test.md`.
 
 ## Teste prático 2 — informação inexistente
 
@@ -50,21 +50,21 @@ Warning Pydantic no MCP; Actions de artifact antigas/não pinadas; ausência de 
 
 ## Problemas corrigidos
 
-Warning eliminado; ações atualizadas; gates e testes adicionados.
+Warning eliminado+ ações atualizadas; gates e testes adicionados.
 
 ## Problemas upstream
 
-Nenhum bloqueio confirmado localmente. A disponibilidade final de Dependency Review é de plataforma.
+Nenhum bloqueio confirmado localmente. O Dependency Graph inicialmente desabilitado no MCP foi habilitado; o Dependency Review oficial passou na tentativa 2 do run `31978377887`.
 
 ## Limitações
 
-A matriz GitHub concluiu PASS em Windows, Ubuntu e macOS com Python 3.11/3.12. CodeQL Advanced não pode coexistir com o Default Setup já habilitado pela plataforma; o workflow redundante foi removido. A interface disponível não expõe a contagem Critical/High do Default Setup. O Dependency Graph do MCP está desabilitado, bloqueando Dependency Review.
+A matrix GitHub concluiu PASS em Windows, Ubuntu e macOS com Python 3.11/3.12. CodeQL Advanced não pode coexistir com o Default Setup já habilitado pela plataforma; o workflow redundante foi removido. Falta registrar, a partir da interface CodeQL, a contagem de alertas Critical/High do Default Setup.
 
 ## Commits exatos
 
-Baseline Skill `8c964b1`; MCP `53e171c`. PR heads: Skill `105b9ce`; MCP `0b0ff28` (antes da consolidação deste relatório).
+Baseline Skill `8c964b1`; MCP `53e171c`. PR heads: Skill `105b9ce`; MCP `0b0ff28` (before da consolidação deste relatório).
 
-## PRs
+## PRS
 
 [Skill PR #10](https://github.com/danielmontagna86-source/tdn-protheus-skill-kit/pull/10) e [MCP PR #12](https://github.com/danielmontagna86-source/tdn-protheus-mcp/pull/12), ambos draft e sem merge.
 
