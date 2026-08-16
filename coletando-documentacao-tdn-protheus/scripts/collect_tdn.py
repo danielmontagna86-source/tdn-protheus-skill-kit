@@ -22,8 +22,9 @@ USER_AGENT = (
 
 
 class TDNCollector:
-    def __init__(self, delay: float) -> None:
+    def __init__(self, delay: float, deadline: float | None = None) -> None:
         self.delay = delay
+        self.deadline = deadline
         self.session = requests.Session()
         self.session.headers.update({"User-Agent": USER_AGENT})
         self.errors: list[dict[str, str]] = []
@@ -31,7 +32,13 @@ class TDNCollector:
     def get_json(self, url: str) -> dict | None:
         for attempt in range(3):
             try:
-                response = self.session.get(url, timeout=30)
+                timeout = 30.0
+                if self.deadline is not None:
+                    remaining = self.deadline - time.monotonic()
+                    if remaining <= 0:
+                        raise TimeoutError("prazo global da coleta atingido")
+                    timeout = min(timeout, remaining)
+                response = self.session.get(url, timeout=timeout)
                 if response.status_code == 404:
                     return None
                 response.raise_for_status()

@@ -112,6 +112,32 @@ class SnapshotSyncTests(unittest.TestCase):
                 synchronizer.discover_tree(8, 1)
             self.assertIsNone(synchronizer.store.load_manifest())
 
+    def test_dry_run_returns_a_partial_estimate_when_the_page_limit_is_reached(self) -> None:
+        sync_module = load_module()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            synchronizer = sync_module.SnapshotSynchronizer(235312129, Path(temp_dir), 0)
+            synchronizer.collector.list_children = lambda _page_id: [{"id": "2"}]
+
+            result = synchronizer.snapshot(8, 1, 1, True, False)
+
+            self.assertEqual(result["mode"], "dry-run")
+            self.assertFalse(result["complete"])
+            self.assertEqual(result["stop_reason"], "max-pages")
+            self.assertEqual(result["pages_discovered"], 1)
+            self.assertIsNone(synchronizer.store.load_manifest())
+
+    def test_dry_run_returns_a_partial_estimate_when_the_duration_expires(self) -> None:
+        sync_module = load_module()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            synchronizer = sync_module.SnapshotSynchronizer(235312129, Path(temp_dir), 0)
+            with patch.object(sync_module.time, "monotonic", side_effect=(0, 2)):
+                result = synchronizer.snapshot(8, None, 1, True, False, max_duration_seconds=1)
+
+            self.assertEqual(result["mode"], "dry-run")
+            self.assertFalse(result["complete"])
+            self.assertEqual(result["stop_reason"], "max-duration")
+            self.assertEqual(result["pages_discovered"], 0)
+
     def test_resume_finishes_partial_snapshot_and_publishes_once_complete(self) -> None:
         sync_module = load_module()
         with tempfile.TemporaryDirectory() as temp_dir:

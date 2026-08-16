@@ -69,7 +69,7 @@ Para trabalhar sem rede depois da primeira coleta, use `scripts/sync_tdn_snapsho
 1. Estime antes de baixar. Isto navega a árvore, mas não baixa corpos nem grava cache:
 
    ```bash
-   python scripts/sync_tdn_snapshot.py snapshot --root-id 235312129 --cache-dir ./tdn-cache --max-depth 8 --dry-run
+   python scripts/sync_tdn_snapshot.py snapshot --root-id 235312129 --cache-dir ./tdn-cache --max-depth 8 --max-duration-seconds 120 --dry-run
    ```
 
 2. Inicie o snapshot somente após revisar a estimativa. Protheus 12 pode levar 30–50 minutos ou mais e ocupar espaço considerável. Interrupções podem ser retomadas com `--resume`:
@@ -77,6 +77,8 @@ Para trabalhar sem rede depois da primeira coleta, use `scripts/sync_tdn_snapsho
    ```bash
    python scripts/sync_tdn_snapshot.py snapshot --root-id 235312129 --cache-dir ./tdn-cache --max-depth 8 --checkpoint-every 25
    ```
+
+   Em árvores amplas, mantenha `--max-duration-seconds` no dry-run. Se o prazo ou `--max-pages` for atingido, ele devolve JSON com `complete: false`; não inicia a coleta nem publica manifesto parcial. Escolha uma página-raiz mais específica antes de fazer o snapshot real.
 
 3. Gere a saída sem HTTP e processe-a normalmente:
 

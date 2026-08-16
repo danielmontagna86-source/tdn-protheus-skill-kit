@@ -140,18 +140,37 @@ class PageLimitReached(RuntimeError):
     pass
 
 
+class SnapshotDurationReached(TimeoutError):
+    pass
+
+
 class SnapshotSynchronizer:
     def __init__(self, root_id: int, cache_dir: Path, delay: float) -> None:
         self.root_id = int(root_id)
         self.store = SnapshotStore(cache_dir, self.root_id)
         self.collector = TDNCollector(delay)
         self.delay = delay
+        self._deadline: float | None = None
+        self._discovered_count = 0
+
+    def _check_deadline(self) -> None:
+        if self._deadline is not None and time.monotonic() >= self._deadline:
+            raise SnapshotDurationReached("prazo máximo atingido durante descoberta")
+
+    def _estimate(self) -> dict[str, Any]:
+        estimate = self._discovered_count * 2
+        return {
+            "pages_discovered": self._discovered_count,
+            "estimated_requests": estimate,
+            "minimum_delay_seconds": round(estimate * self.delay, 1),
+        }
 
     def discover_tree(self, max_depth: int, max_pages: int | None) -> list[int]:
         queue = deque([(self.root_id, 0)])
         seen: set[int] = set()
         discovered: list[int] = []
         while queue:
+            self._check_deadline()
             page_id, depth = queue.popleft()
             if page_id in seen or depth > max_depth:
                 continue
@@ -159,11 +178,13 @@ class SnapshotSynchronizer:
                 raise PageLimitReached(f"limite de {max_pages} páginas atingido durante descoberta")
             seen.add(page_id)
             discovered.append(page_id)
+            self._discovered_count = len(discovered)
             if depth < max_depth:
                 for child in self.collector.list_children(page_id):
                     child_id = child.get("id")
                     if child_id:
                         queue.append((int(child_id), depth + 1))
+            self._check_deadline()
             time.sleep(self.delay)
         return discovered
 
@@ -201,6 +222,31 @@ class SnapshotSynchronizer:
         checkpoint_every: int,
         dry_run: bool,
         resume: bool,
+        max_duration_seconds: float | None = None,
+    ) -> dict[str, Any]:
+        self._discovered_count = 0
+        self._deadline = (
+            time.monotonic() + max_duration_seconds if max_duration_seconds is not None else None
+        )
+        self.collector.deadline = self._deadline
+        try:
+            return self._snapshot(max_depth, max_pages, checkpoint_every, dry_run, resume)
+        except (PageLimitReached, SnapshotDurationReached, TimeoutError) as error:
+            if dry_run and not resume:
+                stop_reason = "max-pages" if isinstance(error, PageLimitReached) else "max-duration"
+                return {"mode": "dry-run", "root_id": self.root_id, "complete": False, "stop_reason": stop_reason, **self._estimate()}
+            raise
+        finally:
+            self._deadline = None
+            self.collector.deadline = None
+
+    def _snapshot(
+        self,
+        max_depth: int,
+        max_pages: int | None,
+        checkpoint_every: int,
+        dry_run: bool,
+        resume: bool,
     ) -> dict[str, Any]:
         if resume:
             state = self.store.load_state()
@@ -209,11 +255,9 @@ class SnapshotSynchronizer:
             pending = [int(page_id) for page_id in state.get("pending_ids", [])]
         else:
             discovered = self.discover_tree(max_depth, max_pages)
-            estimate = len(discovered) * 2
             if dry_run:
                 return {
-                    "mode": "dry-run", "root_id": self.root_id, "pages_discovered": len(discovered),
-                    "estimated_requests": estimate, "minimum_delay_seconds": round(estimate * self.delay, 1),
+                    "mode": "dry-run", "root_id": self.root_id, "complete": True, **self._estimate(),
                 }
             state = {
                 "root_id": self.root_id,
@@ -341,6 +385,7 @@ def parse_args() -> argparse.Namespace:
     snapshot.add_argument("--delay", type=float, default=0.35)
     snapshot.add_argument("--max-pages", type=int)
     snapshot.add_argument("--checkpoint-every", type=int, default=25)
+    snapshot.add_argument("--max-duration-seconds", type=float, help="prazo global para descoberta do snapshot")
     snapshot.add_argument("--dry-run", action="store_true")
     snapshot.add_argument("--resume", action="store_true")
     refresh = sub.add_parser("refresh", help="Atualiza apenas páginas alteradas")
@@ -362,6 +407,8 @@ def main() -> None:
         raise SystemExit("--max-depth e --delay devem ser não negativos")
     if getattr(args, "checkpoint_every", 1) < 1:
         raise SystemExit("--checkpoint-every deve ser maior que zero")
+    if getattr(args, "max_duration_seconds", None) is not None and args.max_duration_seconds <= 0:
+        raise SystemExit("--max-duration-seconds deve ser maior que zero")
     store = SnapshotStore(args.cache_dir, args.root_id)
     try:
         if args.command == "export":
@@ -371,11 +418,11 @@ def main() -> None:
         else:
             sync = SnapshotSynchronizer(args.root_id, args.cache_dir, args.delay)
             if args.command == "snapshot":
-                result = sync.snapshot(args.max_depth, args.max_pages, args.checkpoint_every, args.dry_run, args.resume)
+                result = sync.snapshot(args.max_depth, args.max_pages, args.checkpoint_every, args.dry_run, args.resume, args.max_duration_seconds)
             else:
                 result = sync.refresh(args.max_depth, args.max_pages)
             sync.store.append_errors(sync.collector.errors)
-    except (RuntimeError, PageLimitReached) as error:
+    except (RuntimeError, PageLimitReached, TimeoutError) as error:
         if "sync" in locals():
             sync.store.append_errors(sync.collector.errors)
         raise SystemExit(f"ERRO: {error}") from error

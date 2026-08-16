@@ -13,6 +13,10 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 - Guias de instalação e configuração para Claude Code, Codex e hosts MCP genéricos.
 - Contrato de protocolo, documentação de segurança e decisão de distribuição.
 
+### Changed
+
+- Dry-run de snapshot agora aceita prazo global e devolve estimativa parcial estruturada ao atingir prazo ou limite de páginas, sem publicar snapshot incompleto.
+
 ## [0.1.0] - 2026-08-15
 
 ### Added
