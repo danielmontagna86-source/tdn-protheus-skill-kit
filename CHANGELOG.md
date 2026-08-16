@@ -4,6 +4,13 @@ Todas as mudanças relevantes deste projeto serão registradas neste arquivo.
 
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o versionamento segue [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [Unreleased]
+
+### Fixed
+
+- README principal corrigido para descrever o `tdn-protheus-skill-kit` como skill portátil de localização, coleta, processamento e manutenção de snapshots TDN, removendo a descrição herdada do servidor MCP.
+- Histórico `0.2.0` corrigido para registrar somente funcionalidades pertencentes ao Skill Kit; o `tdn-protheus-mcp` permanece documentado como projeto complementar independente.
+
 ## [0.2.1] - 2026-08-16
 
 ### Fixed
@@ -15,15 +22,18 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o 
 
 ### Added
 
-- Pacote público `tdn-protheus-mcp` com CLI, configuração segura e índice SQLite FTS5 local.
-- Servidor MCP `stdio` read-only com tools, resources, prompts e citações rastreáveis.
-- Guias de instalação e configuração para Claude Code, Codex e hosts MCP genéricos.
-- Contrato de protocolo, documentação de segurança e decisão de distribuição.
+- Instalação portátil da skill para Codex, Claude Code, Antigravity e loaders compatíveis com a convenção configurada para OpenRouter.
+- Coleta controlada de documentação pública do TDN a partir de raízes escolhidas pela pessoa usuária.
+- Snapshot local retomável com manifesto, páginas versionadas e exportação offline.
+- Refresh incremental baseado em versão para baixar novamente somente páginas novas ou alteradas.
+- Processamento de conteúdo para JSON/JSONL e chunks com metadados de contexto Protheus.
+- Validação estrutural da skill, testes automatizados e empacotamento distribuível.
 
 ### Changed
 
-- Dry-run de snapshot agora aceita prazo global e devolve estimativa parcial estruturada ao atingir prazo ou limite de páginas, sem publicar snapshot incompleto.
+- Dry-run de snapshot passou a aceitar prazo global e a devolver estimativa parcial estruturada ao atingir prazo ou limite de páginas, sem publicar snapshot incompleto.
 - Adicionado `locate_tdn_pages.py` para descoberta paginada e limitada por metadados de título antes de criar snapshots de páginas específicas.
+- Documentado o fluxo de uso conjunto com o projeto complementar `tdn-protheus-mcp`, mantendo instalação e responsabilidades separadas.
 
 ## [0.1.0] - 2026-08-15
 
