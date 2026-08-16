@@ -1,0 +1,6 @@
+{
+  "generation_id_A": "generation-A",
+  "generation_id_B": "generation-B",
+  "stale_error": "POLICY_INDEX_STALE",
+  "result_after_reindex": "20:0"
+}

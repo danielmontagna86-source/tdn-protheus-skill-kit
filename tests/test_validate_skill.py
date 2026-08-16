@@ -193,7 +193,7 @@ class ValidateSkillTests(unittest.TestCase):
         self.assertNotIn("twine", workflow)
         self.assertIn("tdn-protheus-skill-kit-${GITHUB_REF_NAME}.zip", workflow)
         self.assertIn("--rcfile=.coveragerc", workflow)
-        self.assertIn("--fail-under=70", workflow)
+        self.assertIn("--fail-under=80", workflow)
         self.assertIn("pip_audit -r requirements.txt", workflow)
         self.assertIn("v$(tr -d '\\n' < VERSION)", workflow)
 
