@@ -58,7 +58,7 @@ Nenhum bloqueio confirmado localmente. A disponibilidade final de Dependency Rev
 
 ## Limitações
 
-Matriz GitHub e scanners hospedados ainda pendentes nesta revisão local.
+Matriz GitHub e scanners hospedados ainda pendentes nesta revisão local. CodeQL Advanced não pode coexistir com o Default Setup já habilitado pela plataforma; o workflow redundante foi removido.
 
 ## Commits exatos
 

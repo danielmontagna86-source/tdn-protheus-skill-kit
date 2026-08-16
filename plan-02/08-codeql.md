@@ -1,5 +1,5 @@
 # CodeQL
 
-Adicionado aos dois projetos: Python, `pull_request` para main, push em main e agendamento semanal. Permissões: `contents: read`, `security-events: write`. Ação: `github/codeql-action@v4.37.7`, SHA pinado.
+O primeiro run comprovou que o repositório já possui CodeQL Default Setup habilitado na plataforma. GitHub recusa coexistência de análise avançada por `github/codeql-action` e Default Setup; o upload retornou: `CodeQL analyses from advanced configurations cannot be processed when the default setup is enabled`.
 
-O workflow segue a configuração avançada recomendada pela documentação oficial do GitHub. Resultado de scan: PENDENTE_DE_EXECUÇÃO_NO_GITHUB; não declarar Critical/High=0 antes da execução hospedada.
+Classificação: `UPSTREAM/PLATFORM CONFIGURATION`. O workflow avançado foi removido para não manter uma CI sabidamente inválida. O gate CodeQL permanece a cargo do Default Setup GitHub, que já executa em PR/push e agenda. Critical/High continuam pendentes de consulta do resultado da plataforma.

@@ -7,7 +7,7 @@
 | pip-audit | PASS | PASS |
 | SBOM/SHA/artefatos | PASS | PASS |
 | stdio/wheel/sdist/Twine | N/A | PASS |
-| CodeQL | PENDENTE GitHub | PENDENTE GitHub |
+| CodeQL | Default Setup da plataforma | Default Setup da plataforma |
 | Dependency Review | PENDENTE GitHub | PENDENTE GitHub |
 | 3 SO × 2 Python | PENDENTE GitHub | PENDENTE GitHub |
 | live/no-evidence/stale/rollback | PASS | PASS |
