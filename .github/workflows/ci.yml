@@ -32,9 +32,9 @@ jobs:
       - name: Static analysis
         run: python -m ruff check install.py package.py coletando-documentacao-tdn-protheus/scripts tests --output-format=github
       - name: Run tests with coverage
-        run: python -m coverage run --branch --source=install.py,package.py,coletando-documentacao-tdn-protheus/scripts -m unittest discover -s tests -p "test_*.py" -v
+        run: python -m coverage run --rcfile=.coveragerc -m unittest discover -s tests -p "test_*.py" -v
       - name: Coverage gate
-        run: python -m coverage report --fail-under=70
+        run: python -m coverage report --rcfile=.coveragerc --fail-under=70
       - name: Audit direct runtime dependencies
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
         run: python -m pip_audit -r requirements.txt
