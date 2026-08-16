@@ -26,8 +26,8 @@ jobs:
         run: |
           python coletando-documentacao-tdn-protheus/scripts/validate_skill.py coletando-documentacao-tdn-protheus
           python -m ruff check install.py package.py coletando-documentacao-tdn-protheus/scripts tests
-          python -m coverage run --branch --source=install.py,package.py,coletando-documentacao-tdn-protheus/scripts -m unittest discover -s tests -p 'test_*.py' -v
-          python -m coverage report --fail-under=70
+          python -m coverage run --rcfile=.coveragerc -m unittest discover -s tests -p 'test_*.py' -v
+          python -m coverage report --rcfile=.coveragerc --fail-under=70
           python -m pip_audit -r requirements.txt
       - name: Build release assets
         run: |
