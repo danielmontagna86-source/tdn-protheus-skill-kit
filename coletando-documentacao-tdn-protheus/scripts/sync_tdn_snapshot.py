@@ -165,6 +165,16 @@ class SnapshotSynchronizer:
             "minimum_delay_seconds": round(estimate * self.delay, 1),
         }
 
+    def _sleep(self) -> None:
+        delay = self.delay
+        if self._deadline is not None:
+            remaining = self._deadline - time.monotonic()
+            if remaining <= 0:
+                raise SnapshotDurationReached("prazo máximo atingido durante descoberta")
+            delay = min(delay, remaining)
+        time.sleep(delay)
+        self._check_deadline()
+
     def discover_tree(self, max_depth: int, max_pages: int | None) -> list[int]:
         queue = deque([(self.root_id, 0)])
         seen: set[int] = set()
@@ -185,7 +195,7 @@ class SnapshotSynchronizer:
                     if child_id:
                         queue.append((int(child_id), depth + 1))
             self._check_deadline()
-            time.sleep(self.delay)
+            self._sleep()
         return discovered
 
     def fetch_version(self, page_id: int) -> dict[str, Any] | None:

@@ -138,6 +138,26 @@ class SnapshotSyncTests(unittest.TestCase):
             self.assertEqual(result["stop_reason"], "max-duration")
             self.assertEqual(result["pages_discovered"], 0)
 
+    def test_dry_run_does_not_sleep_past_its_global_duration(self) -> None:
+        sync_module = load_module()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            synchronizer = sync_module.SnapshotSynchronizer(235312129, Path(temp_dir), 1)
+            synchronizer.collector.list_children = lambda _page_id: []
+            clock = [0.0]
+
+            def monotonic() -> float:
+                return clock[0]
+
+            def sleep(seconds: float) -> None:
+                clock[0] += seconds
+
+            with patch.object(sync_module.time, "monotonic", monotonic), patch.object(sync_module.time, "sleep", sleep):
+                result = synchronizer.snapshot(0, None, 1, True, False, max_duration_seconds=0.1)
+
+            self.assertFalse(result["complete"])
+            self.assertEqual(result["stop_reason"], "max-duration")
+            self.assertLessEqual(clock[0], 0.1)
+
     def test_resume_finishes_partial_snapshot_and_publishes_once_complete(self) -> None:
         sync_module = load_module()
         with tempfile.TemporaryDirectory() as temp_dir:

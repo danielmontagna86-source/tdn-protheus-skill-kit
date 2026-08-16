@@ -29,16 +29,25 @@ class TDNCollector:
         self.session.headers.update({"User-Agent": USER_AGENT})
         self.errors: list[dict[str, str]] = []
 
+    def _remaining_timeout(self) -> float:
+        if self.deadline is None:
+            return 30.0
+        remaining = self.deadline - time.monotonic()
+        if remaining <= 0:
+            raise TimeoutError("prazo global da coleta atingido")
+        return min(30.0, remaining)
+
+    def _sleep(self, seconds: float) -> None:
+        delay = seconds
+        if self.deadline is not None:
+            delay = min(delay, self._remaining_timeout())
+        time.sleep(delay)
+        self._remaining_timeout()
+
     def get_json(self, url: str) -> dict | None:
         for attempt in range(3):
             try:
-                timeout = 30.0
-                if self.deadline is not None:
-                    remaining = self.deadline - time.monotonic()
-                    if remaining <= 0:
-                        raise TimeoutError("prazo global da coleta atingido")
-                    timeout = min(timeout, remaining)
-                response = self.session.get(url, timeout=timeout)
+                response = self.session.get(url, timeout=self._remaining_timeout())
                 if response.status_code == 404:
                     return None
                 response.raise_for_status()
@@ -47,7 +56,7 @@ class TDNCollector:
                 if attempt == 2:
                     self.errors.append({"url": url, "error": str(error)})
                     raise RuntimeError(f"Falha definitiva na API: {url}") from error
-                time.sleep(1.5 * (attempt + 1))
+                self._sleep(1.5 * (attempt + 1))
         raise AssertionError("loop de tentativa inesperado")
 
     def list_children(self, page_id: int, limit: int = 50) -> list[dict]:
