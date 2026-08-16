@@ -1,18 +1,23 @@
-# Instalação
+# Instalação — TDN Protheus Skill Kit
 
-Requisito: Python 3.11+ e SQLite com FTS5. Prefira `uvx` ou `pipx` para isolar a ferramenta.
+Requisito: Python 3.11+.
 
-```bash
-uvx --from tdn-protheus-mcp tdn-protheus-mcp --help
-# ou
-pipx install tdn-protheus-mcp
-```
-
-Crie a configuração a partir de `tdn-protheus-mcp.config.example.json`; mantenha `offline: true` e `allow_mutations: false`. Gere/importa o snapshot usando a skill, valide-o e crie o índice:
+Clone o repositório e faça primeiro uma prévia:
 
 ```bash
-tdn-protheus-mcp doctor --config ./tdn-protheus-mcp.config.json --json
-tdn-protheus-mcp index --config ./tdn-protheus-mcp.config.json --root-id 235312129 --json
+git clone https://github.com/danielmontagna86-source/tdn-protheus-skill-kit.git
+cd tdn-protheus-skill-kit
+python install.py --platform codex --scope project --dry-run
 ```
 
-Remoção: `pipx uninstall tdn-protheus-mcp`. A remoção do pacote não apaga o snapshot local.
+Depois instale:
+
+```bash
+python install.py --platform codex --scope project
+```
+
+Plataformas aceitas pelo instalador: `codex`, `claude`, `antigravity` e `openrouter` para loaders compatíveis com a convenção documentada.
+
+O instalador copia somente `coletando-documentacao-tdn-protheus/`, valida a skill e cria uma `.venv` local para as dependências. Use `--skip-deps` somente quando o ambiente Python já estiver preparado.
+
+O MCP complementar é instalado separadamente a partir de https://github.com/danielmontagna86-source/tdn-protheus-mcp.

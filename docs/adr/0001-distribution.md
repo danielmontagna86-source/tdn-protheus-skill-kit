@@ -1,13 +1,16 @@
-# ADR 0001 — Distribuição inicial
+# ADR 0001 — Distribuição do Skill Kit
 
 ## Decisão
 
-Distribuir o MCP como pacote Python no PyPI e GitHub Releases. O caminho recomendado é `uvx`; `pipx` é alternativa. Docker não é requisito do MVP.
+Distribuir o `tdn-protheus-skill-kit` como ZIP portátil em GitHub Releases. O repositório não publica pacote Python, comando MCP ou servidor `stdio`.
 
 ## Motivo
 
-O servidor `stdio` é local e usa um snapshot sob controle da pessoa usuária. Exigir Docker elevaria a barreira de entrada, principalmente no Windows, sem melhorar o modelo de segurança da primeira versão.
+A responsabilidade deste projeto é instalar e executar uma skill portátil com scripts próprios de localização, coleta, snapshot, refresh, exportação e processamento documental. O servidor MCP é mantido exclusivamente no projeto independente `tdn-protheus-mcp`.
 
 ## Consequências
 
-Manter testes multiplataforma e documentação de Python. Uma imagem Docker local poderá ser avaliada após evidência de demanda, sem criar endpoint remoto.
+- O ZIP de release usa allowlist explícita de arquivos do Skill Kit.
+- A CI valida somente a skill e seus scripts.
+- Não existem `tdn_protheus_mcp/`, metadata de pacote MCP nem documentação de protocolo MCP neste repositório.
+- Compatibilidade conjunta é validada por testes de integração entre os dois repositórios, sem duplicação de código.

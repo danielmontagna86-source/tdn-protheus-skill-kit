@@ -1,9 +1,10 @@
-# Troubleshooting
+# Troubleshooting — Skill Kit
 
 | Sintoma | Ação |
 |---|---|
-| `CONFIG_NOT_FOUND` | Copie o arquivo de exemplo e informe `--config` com caminho existente. |
-| `SNAPSHOT_NOT_FOUND` | Execute a skill de snapshot ou importe um cache local permitido. |
-| `POLICY_INDEX_NOT_FOUND` | Execute `tdn-protheus-mcp index` explicitamente para a mesma `root_id`. |
-| Servidor fecha no host | Execute `tdn-protheus-mcp doctor` e confirme que o host usa `stdio`, não HTTP. |
-| Resultado vazio | Verifique a raiz, recrie o índice e use termos técnicos da página TDN. |
+| Dry-run termina com `complete: false` | Veja `stop_reason` e reduza a raiz/profundidade ou ajuste limites conscientemente. |
+| Snapshot interrompido | Preserve `run_state.json` e use `--resume` somente para uma execução compatível. |
+| `manifesto inexistente` | Execute um snapshot completo antes de `refresh`, `export` ou `status`. |
+| Resultado do localizador vazio | Confirme `complete`; uma descoberta limitada não prova ausência documental. |
+| Instalação já existe | Revise a instalação atual; use `--force` somente quando quiser substituição explícita. |
+| Export offline falha | Confirme o mesmo `root-id` e `cache-dir` usados na coleta. |

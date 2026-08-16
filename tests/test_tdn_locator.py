@@ -6,7 +6,6 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-
 KIT = Path(__file__).parents[1]
 SCRIPT = KIT / "coletando-documentacao-tdn-protheus" / "scripts" / "locate_tdn_pages.py"
 
