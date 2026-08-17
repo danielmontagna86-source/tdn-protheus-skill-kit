@@ -2,6 +2,12 @@
 
 Todas as mudanças relevantes deste projeto serão registradas neste arquivo.
 
+## [0.3.2] - 2026-08-17
+
+### Fixed
+
+- Instalador transacional remove staging com permissão somente leitura no Windows em caso de falha de preparação, sem ocultar erro de limpeza.
+
 ## [0.3.1] - 2026-08-16
 
 ### Changed

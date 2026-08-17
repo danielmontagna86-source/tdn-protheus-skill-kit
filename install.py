@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import os
 import shutil
+import stat
 import subprocess
 import sys
 import uuid
@@ -15,6 +16,14 @@ SKILL_NAME = "coletando-documentacao-tdn-protheus"
 SOURCE_ROOT = Path(__file__).resolve().parent
 SOURCE_SKILL = SOURCE_ROOT / SKILL_NAME
 Runner = Callable[..., subprocess.CompletedProcess]
+
+
+def remove_tree(path: Path) -> None:
+    def retry_writable(operation: Callable[..., object], failed_path: str, _exc) -> None:
+        os.chmod(failed_path, stat.S_IWRITE)
+        operation(failed_path)
+
+    shutil.rmtree(path, onerror=retry_writable)
 
 
 def default_target(platform: str, scope: str) -> Path:
@@ -77,7 +86,7 @@ def prepare_staging(
             validate_skill(staging, runner)
         return staging
     except Exception:
-        shutil.rmtree(staging, ignore_errors=True)
+        remove_tree(staging)
         raise
 
 
@@ -104,7 +113,7 @@ def publish_staging(staging: Path, destination: Path, *, force: bool) -> None:
         raise
     else:
         if backup is not None:
-            shutil.rmtree(backup, ignore_errors=True)
+            remove_tree(backup)
 
 
 def parse_args() -> argparse.Namespace:
