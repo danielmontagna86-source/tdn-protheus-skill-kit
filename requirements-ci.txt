@@ -1,2 +1,2 @@
 # Build tooling floor: blocks the vulnerable setuptools range (PYSEC-2026-3447).
-setuptools>=83
+setuptools>=84.0.0
